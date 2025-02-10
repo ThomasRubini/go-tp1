@@ -25,6 +25,21 @@ func (l *LinkedList[T]) Append(data T) {
 	}
 }
 
+func (l *LinkedList[T]) Get(index int) (T, error) {
+	i := 0
+	for i != index {
+		// Check if there is a next node
+		if l.next == nil {
+			var zero T
+			return zero, fmt.Errorf("Index out of range")
+		}
+		l = l.next
+		i++
+	}
+
+	return l.data, nil
+}
+
 func (l *LinkedList[T]) String() string {
 	if l == nil {
 		return ""
