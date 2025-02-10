@@ -4,9 +4,13 @@ import (
 	"fmt"
 )
 
-type LinkedList[T any] struct {
+type LinkedListNode[T any] struct {
 	data T
-	next *LinkedList[T]
+	next *LinkedListNode[T]
+}
+
+type LinkedList[T any] struct {
+	first *LinkedListNode[T]
 }
 
 func NewLinkedList[T any](data ...T) *LinkedList[T] {
@@ -17,27 +21,48 @@ func NewLinkedList[T any](data ...T) *LinkedList[T] {
 	return l
 }
 
+// Returns null if list is empty
+func (l *LinkedList[T]) lastNode() *LinkedListNode[T] {
+	if l.first == nil {
+		return nil
+	}
+
+	currentNode := l.first
+	for currentNode.next != nil {
+		currentNode = currentNode.next
+	}
+	return currentNode
+}
+
 func (l *LinkedList[T]) Append(data T) {
-	if l.next == nil {
-		l.next = &LinkedList[T]{data: data}
+	last := l.lastNode()
+	if last == nil {
+		l.first = &LinkedListNode[T]{data: data}
 	} else {
-		l.next.Append(data)
+		last.next = &LinkedListNode[T]{data: data}
 	}
 }
 
 func (l *LinkedList[T]) Get(index int) (T, error) {
 	i := 0
-	for i != index {
-		// Check if there is a next node
-		if l.next == nil {
-			var zero T
-			return zero, fmt.Errorf("Index out of range")
+	currentNode := l.first
+	for currentNode != nil {
+		if i == index {
+			// Found
+			return currentNode.data, nil
 		}
-		l = l.next
 		i++
+		currentNode = currentNode.next
 	}
-
-	return l.data, nil
+	// i is the length of the list at this point
+	var zero T
+	if i >= index {
+		// Out of bounds
+		return zero, fmt.Errorf("Index out of bounds")
+	} else {
+		// Not found
+		return zero, fmt.Errorf("Element not found")
+	}
 }
 
 func (l *LinkedList[T]) String() string {
@@ -45,8 +70,8 @@ func (l *LinkedList[T]) String() string {
 		return ""
 	}
 	sb := ""
-	currentNode := l
-	for currentNode.next != nil {
+	currentNode := l.first
+	for currentNode != nil {
 		sb += fmt.Sprintf(", %v", currentNode.data)
 		currentNode = currentNode.next
 	}
@@ -54,10 +79,17 @@ func (l *LinkedList[T]) String() string {
 }
 
 func (l *LinkedList[T]) Length() int {
-	if l == nil {
+	if l.first == nil {
 		return 0
 	}
-	return 1 + l.next.Length()
+
+	i := 0
+	currentNode := l.first
+	for currentNode != nil {
+		i++
+		currentNode = currentNode.next
+	}
+	return i
 }
 
 func main() {
